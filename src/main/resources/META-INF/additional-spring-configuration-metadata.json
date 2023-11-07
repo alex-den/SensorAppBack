@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "application.jwt-cookie-name",
+    "type": "java.lang.String",
+    "description": "A description for 'application.jwt-cookie-name'"
+  },
+  {
+    "name": "application.jwtSecret",
+    "type": "java.lang.String",
+    "description": "A description for 'application.jwtSecret'"
+  },
+  {
+    "name": "application.jwtExpirationMs",
+    "type": "java.lang.String",
+    "description": "A description for 'application.jwtExpirationMs'"
+  }
+]}
