@@ -5,6 +5,10 @@ import java.util.Optional;
 
 import javax.persistence.EntityNotFoundException;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +28,7 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 public class SensorServiceImpl implements SensorService {
 
-	private static final String NOT_EXIST_UNIT_ERR_MSG_FORMAT = "Unit with name %s not exist";
+	private static final String NOT_EXIST_UNIT_ERR_MSG_FORMAT = "Unit with id %d not exist";
 	private static final String NOT_EXIST_SENSOR_ERR_MSG_FORMAT = "Sensor with id %d not exist";
 
 	private final SensorRepository sensorRepository;
@@ -37,8 +41,10 @@ public class SensorServiceImpl implements SensorService {
 	}
 
 	@Override
-	public List<Sensor> getAllSensors() {
-		return sensorRepository.findAll();
+	public Page<Sensor> getAllSensors(Integer pageNumber, Integer pageSize) {
+		Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("id").descending());
+		Page<Sensor> result = sensorRepository.findAll(pageable);
+		return result;
 	}
 
 	@Override
@@ -54,7 +60,8 @@ public class SensorServiceImpl implements SensorService {
 	@Override
 	@Transactional
 	public Long add(SensorDto sensorDto) {
-		Optional<Unit> newUnit = unitRepository.findByName(sensorDto.getUnit());
+		log.info("Add service " + sensorDto.toString());
+		Optional<Unit> newUnit = unitRepository.findById(sensorDto.getUnitId());
 		if (newUnit.isPresent()) {
 			Sensor newSensor = new Sensor();
 			newSensor.setName(sensorDto.getName());
@@ -75,7 +82,7 @@ public class SensorServiceImpl implements SensorService {
 	@Transactional
 	public Long edit(Long id, SensorDto sensorDto) {
 		Optional<Sensor> editedSensor = sensorRepository.findById(id);
-		Optional<Unit> newUnit = unitRepository.findByName(sensorDto.getUnit());
+		Optional<Unit> newUnit = unitRepository.findById(sensorDto.getUnitId());
 		if (newUnit.isPresent()) {
 			if (editedSensor.isPresent()) {
 				Sensor newSensor = editedSensor.get();
@@ -104,7 +111,9 @@ public class SensorServiceImpl implements SensorService {
 	}
 
 	@Override
-	public List<Sensor> findByText(String text) {
-		return sensorRepository.findAllByText(text);
+	public Page<Sensor> findByText(Integer pageNumber, Integer pageSize, String text) {
+		Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("id").descending());
+		Page<Sensor> result = sensorRepository.findAllByText(text, pageable);
+		return result;
 	}
 }

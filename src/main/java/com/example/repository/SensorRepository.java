@@ -1,8 +1,9 @@
 package com.example.repository;
 
-import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -10,7 +11,7 @@ import com.example.models.Sensor;
 
 public interface SensorRepository extends JpaRepository<Sensor, Long> {
 	
-	List<Sensor> findAll();
+	Page<Sensor> findAll(Pageable pageable);
 	
 	Optional<Sensor> findById(Long id);
 	
@@ -25,6 +26,6 @@ public interface SensorRepository extends JpaRepository<Sensor, Long> {
 			+ "	OR (st.name LIKE (CONCAT('%', ?1,'%')))"
 			+ "	OR (u.name LIKE (CONCAT('%', ?1,'%')))"
 			, nativeQuery = true)
-	List<Sensor> findAllByText(String search);
+	Page<Sensor> findAllByText(String search, Pageable pageable);
 
 }

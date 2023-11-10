@@ -18,11 +18,15 @@ public class SensorDto {
 
 	@NotBlank
 	private String model;
-
+	
 	@NotBlank
+	private Long unitId;
+
 	private String unit;
 
 	@NotBlank
+	private Long typeId;
+	
 	private String type;
 	
 	private Integer rangeFrom;
@@ -41,7 +45,9 @@ public class SensorDto {
 				.name(sensor.getName())
 				.model(sensor.getModel())
 				.type(sensor.getUnit().getSensorType().getName())
+				.typeId(sensor.getUnit().getSensorType().getId())
 				.unit(sensor.getUnit().getName())
+				.unitId(sensor.getUnit().getId())
 				.rangeFrom(sensor.getRangeFrom())
 				.rangeTo(sensor.getRangeTo())
 				.range(sensor.getRangeFrom() + "—" + sensor.getRangeTo())

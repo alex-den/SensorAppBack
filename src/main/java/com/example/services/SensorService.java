@@ -3,6 +3,8 @@ package com.example.services;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+
 import com.example.models.Sensor;
 import com.example.models.SensorType;
 import com.example.models.Unit;
@@ -12,7 +14,7 @@ public interface SensorService {
 
 	Optional<Sensor> getById(Long id);
 
-	List<Sensor> getAllSensors();
+	Page<Sensor> getAllSensors(Integer pageNumber, Integer pageSize);
 
 	List<SensorType> getAllSensorTypes();
 
@@ -24,6 +26,6 @@ public interface SensorService {
 
 	void remove(Long id);
 
-	List<Sensor> findByText(String text);
+	Page<Sensor> findByText(Integer pageNumber, Integer pageSize, String text);
 
 }

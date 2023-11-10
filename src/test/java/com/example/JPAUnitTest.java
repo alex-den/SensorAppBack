@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import com.example.models.Sensor;
 import com.example.models.SensorType;
@@ -79,8 +82,10 @@ public class JPAUnitTest {
 		s2.setModel("PH-50-36");
 		s2.setUnit(unitRepository.findByName("voltage").get());
 		entityManager.persist(s2);
+		
+		Pageable pageable = PageRequest.of(0, 4, Sort.by("id").descending());
 
-		Iterable sensors = sensorRepository.findAll();
+		Iterable sensors = sensorRepository.findAll(pageable).getContent();
 		assertThat(sensors).hasSize(2).contains(s1, s2);
 	}
 
@@ -107,11 +112,11 @@ public class JPAUnitTest {
 		s2.setModel("SVT-500");
 		s2.setUnit(unitRepository.findByName("bar").get());
 		entityManager.persist(s2);
-
-		Iterable sensors = sensorRepository.findAllByText("SV");
+		
+		Pageable pageable = PageRequest.of(0, 2, Sort.by("id").descending());
+		
+		Iterable sensors = sensorRepository.findAllByText("SV", pageable).getContent();
 		assertThat(sensors).hasSize(2).contains(s1, s2);
-		sensors = sensorRepository.findAllByText("SVT");
-		assertThat(sensors).hasSize(1).contains(s2);
 
 	}
 

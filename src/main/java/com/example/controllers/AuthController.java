@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600, allowCredentials="true")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor

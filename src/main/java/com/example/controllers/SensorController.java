@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +26,7 @@ import com.example.models.Sensor;
 import com.example.models.SensorType;
 import com.example.models.Unit;
 import com.example.payload.MessageResponse;
+import com.example.payload.PageSensorDto;
 import com.example.payload.SensorDto;
 import com.example.services.SensorService;
 
@@ -32,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600, allowCredentials="true")
 @RestController
 @RequestMapping("/api/data")
 @RequiredArgsConstructor
@@ -52,11 +54,17 @@ public class SensorController {
 
 	@GetMapping("/sensors")
 	@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-	public ResponseEntity<List<SensorDto>> getSensors() {
-		log.info("Try get all sensor data");
-		List<Sensor> sensors = sensorService.getAllSensors();
-		List<SensorDto> result = sensors.stream().map(SensorDto::toDto).collect(Collectors.toList());
-		if (sensors.isEmpty()) {
+	public ResponseEntity<PageSensorDto> getSensors(
+			@RequestParam(defaultValue = "0") Integer page,
+	        @RequestParam(defaultValue = "4") Integer size){
+		log.info("Try to get all sensor data");
+		Page<Sensor> sensorsPage = sensorService.getAllSensors(page, size);
+		log.info("Found : " + sensorsPage.toString());
+		List<SensorDto> sensorsDto = sensorsPage.getContent().stream().map(SensorDto::toDto).collect(Collectors.toList());
+		log.info("Found : " + sensorsDto.toString());
+		PageSensorDto result = new PageSensorDto(sensorsDto, sensorsPage.getNumber(),sensorsPage.getTotalElements(), sensorsPage.getTotalPages());
+		log.info("Found : " + result.toString());
+		if (sensorsDto.isEmpty()) {
 			return ResponseEntity.noContent().build();
 		}
 		return ResponseEntity.ok(result);
@@ -76,7 +84,7 @@ public class SensorController {
 	@GetMapping("/units-for-sensor-type")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<List<Unit>> getUnitsForSensorType(@RequestParam("id") Long id) {
-		log.info("Try get all unit data");
+		log.info("Try to get all unit data");
 		List<Unit> units = sensorService.getAllUnitForSensorType(id);
 		if (units.isEmpty()) {
 			return ResponseEntity.noContent().build();
@@ -86,12 +94,16 @@ public class SensorController {
 
 	@GetMapping("/find-sensors")
 	@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-	public ResponseEntity<List<SensorDto>> getSensorsByText(@RequestParam("searchText") String searchText) {
+	public ResponseEntity<PageSensorDto> getSensorsByText(
+			@RequestParam(defaultValue = "0") Integer page,
+	        @RequestParam(defaultValue = "4") Integer size,
+			@RequestParam("searchText") String searchText) {
 		log.info("Try get data with filter {}", searchText);
-		List<Sensor> sensors = sensorService.findByText(searchText);
-		log.info("Get data with filter size = {} ", sensors.size());
-		List<SensorDto> result = sensors.stream().map(SensorDto::toDto).collect(Collectors.toList());
-		if (result.isEmpty()) {
+		Page<Sensor> sensorsPage = sensorService.findByText(page, size, searchText);
+		List<SensorDto> sensorsDto = sensorsPage.getContent().stream().map(SensorDto::toDto).collect(Collectors.toList());
+		PageSensorDto result = new PageSensorDto(sensorsDto, sensorsPage.getNumber(),sensorsPage.getTotalElements(), sensorsPage.getTotalPages());
+		log.info("Get data with filter size = {} ", sensorsDto.size());
+			if (sensorsDto.isEmpty()) {
 			return ResponseEntity.noContent().build();
 		}
 		return ResponseEntity.ok(result);
@@ -114,6 +126,7 @@ public class SensorController {
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> createSensor(@RequestBody SensorDto sensorDto) {
 		log.info("Try add data");
+		log.info("Add DTO " + sensorDto.toString());
 		Long addedId = sensorService.add(sensorDto);
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(new MessageResponse(String.format(ADD_MSG_FORMAT, addedId)));
@@ -122,7 +135,7 @@ public class SensorController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@PutMapping("/sensors/{id}")
 	public ResponseEntity<?> updateSensor(@PathVariable("id") Long id, @RequestBody SensorDto newSensor) {
-		log.info("Try edit data{}", id);
+		log.info("Try edit data {}", id);
 		Long editedId = sensorService.edit(id, newSensor);
 		return ResponseEntity.ok().body(new MessageResponse(String.format(EDIT_MSG_FORMAT, editedId)));
 	}
@@ -133,7 +146,7 @@ public class SensorController {
 		log.info("Try delete data by id {}", id);
 		try {
 			sensorService.remove(id);
-			return ResponseEntity.ok().body(String.format(DELETE_MSG_FORMAT, id));
+			return ResponseEntity.ok().body(new MessageResponse(String.format(DELETE_MSG_FORMAT, id)));
 		} catch (Exception e) {
 			return ResponseEntity.internalServerError().build();
 		}
